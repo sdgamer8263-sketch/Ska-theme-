@@ -1,0 +1,8 @@
+{
+  "name": "Pterodactyl Theme Suite",
+  "description": "Admin panel theme editor UI and setup files for Pterodactyl.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
