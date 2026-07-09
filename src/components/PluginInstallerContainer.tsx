@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Search, Download, Star, Box, Check } from 'lucide-react';
+import { Search, Download, Star, Box, Check, Upload } from 'lucide-react';
 import { useToast } from './ToastProvider';
+import { apiService } from '../services/apiService';
 
 export default function PluginInstallerContainer() {
   const { showToast } = useToast();
@@ -15,24 +16,47 @@ export default function PluginInstallerContainer() {
     { id: 3, name: 'Vault', description: 'Economy, Permission & Chat API.', downloads: '3.8M', rating: 4.7 },
   ];
 
-  const handleInstall = (id: number, name: string) => {
+  const handleInstall = async (id: number, name: string) => {
     setInstalling(id);
     showToast(`Starting installation of ${name}...`, 'success');
     
-    setTimeout(() => {
-      setInstalling(null);
+    try {
+      const success = await apiService.installPlugin('current-server-id', id);
+      if (!success) throw new Error('Installation failed');
+      
       setInstalled(prev => [...prev, id]);
       showToast(`${name} installed successfully!`, 'success');
-    }, 2000);
+    } catch (error: any) {
+      showToast(`Failed to install ${name}. ${error.message || 'Please try again.'}`, 'error');
+    } finally {
+      setInstalling(null);
+    }
   };
+
+  const handleCustomUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      showToast(`Uploading custom plugin ${file.name}...`, 'success');
+      setTimeout(() => {
+        showToast('Custom plugin uploaded and applied successfully!', 'success');
+      }, 2000);
+    }
+  };
+
+  const filteredPlugins = mockPlugins.filter(p => p.name.toLowerCase().includes(query.toLowerCase()));
 
   return (
     <div className="p-8 max-w-5xl mx-auto space-y-8 animate-in fade-in duration-500">
-      <div className="flex justify-between items-end">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
         <div>
           <h2 className="text-3xl font-bold text-white mb-1">Plugin Installer</h2>
           <p className="text-slate-400">Search and install plugins directly to your server.</p>
         </div>
+        <label className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl transition-all font-medium text-sm cursor-pointer whitespace-nowrap">
+          <Upload className="w-4 h-4" />
+          Upload Custom .jar
+          <input type="file" className="hidden" accept=".jar" onChange={handleCustomUpload} />
+        </label>
       </div>
 
       <div className="bg-white/5 backdrop-blur-xl border border-white/10 p-6 rounded-2xl">
@@ -48,7 +72,7 @@ export default function PluginInstallerContainer() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {mockPlugins.map(plugin => {
+          {filteredPlugins.map(plugin => {
             const isInstalling = installing === plugin.id;
             const isInstalled = installed.includes(plugin.id);
             

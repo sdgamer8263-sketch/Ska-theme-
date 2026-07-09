@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   LayoutDashboard, 
   Settings, 
@@ -21,7 +21,11 @@ import {
   Layers,
   ArrowUpCircle,
   DatabaseBackup,
-  ScrollText
+  ScrollText,
+  PackageOpen,
+  SplitSquareHorizontal,
+  UserCheck,
+  FileText
 } from 'lucide-react';
 import ServerDashboard from './components/ServerDashboard';
 import ThemeSettingsContainer from './components/ThemeSettingsContainer';
@@ -31,6 +35,16 @@ import ResourceMonitor from './components/ResourceMonitor';
 import AutoUpdater from './components/AutoUpdater';
 import BackupManager from './components/BackupManager';
 import SystemLogs from './components/SystemLogs';
+import ModInstaller from './components/ModInstaller';
+import BedrockAddonInstaller from './components/BedrockAddonInstaller';
+import PlayerManager from './components/PlayerManager';
+import ServerSplitter from './components/ServerSplitter';
+import PermissionsManager from './components/PermissionsManager';
+import Documentation from './components/Documentation';
+import NodeOverview from './components/NodeOverview';
+import CommandPalette from './components/CommandPalette';
+import ConsoleView from './components/ConsoleView';
+import UserDashboard from './components/UserDashboard';
 
 import { ErrorBoundary } from './components/ErrorBoundary';
 
@@ -100,8 +114,21 @@ echo "Installation Complete!"`
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('install.sh');
-  const [activeView, setActiveView] = useState('dashboard');
+  const [activeView, setActiveView] = useState('user_dashboard');
+  const [searchQuery, setSearchQuery] = useState('');
   const [copied, setCopied] = useState(false);
+  const [isCmdPaletteOpen, setIsCmdPaletteOpen] = useState(false);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        setIsCmdPaletteOpen(true);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   const handleCopy = () => {
     navigator.clipboard.writeText(files[activeTab as keyof typeof files].content);
@@ -111,6 +138,32 @@ export default function App() {
 
   return (
     <div className="fixed inset-0 bg-[#0a0a1a] flex overflow-hidden font-sans text-slate-100 selection:bg-indigo-500/30" style={{ backgroundImage: "radial-gradient(circle at 20% 30%, #1e1b4b 0%, transparent 50%), radial-gradient(circle at 80% 70%, #312e81 0%, transparent 50%), radial-gradient(circle at 50% 50%, #0f172a 0%, #020617 100%)" }}>
+      <CommandPalette 
+        isOpen={isCmdPaletteOpen} 
+        onClose={() => setIsCmdPaletteOpen(false)} 
+        onNavigate={setActiveView}
+        modules={[
+          { id: 'user_dashboard', label: 'My Servers', icon: <Server className="w-5 h-5" /> },
+          { id: 'console', label: 'Server Console', icon: <Terminal className="w-5 h-5" /> },
+          { id: 'dashboard', label: 'Admin Dashboard', icon: <LayoutDashboard className="w-5 h-5" /> },
+          { id: 'servers', label: 'All Servers', icon: <Server className="w-5 h-5" /> },
+          { id: 'nodes', label: 'Node Overview', icon: <Activity className="w-5 h-5" /> },
+          { id: 'monitor', label: 'Resource Monitor', icon: <Activity className="w-5 h-5" /> },
+          { id: 'users', label: 'Users', icon: <Users className="w-5 h-5" /> },
+          { id: 'versions', label: 'Version Manager', icon: <Layers className="w-5 h-5" /> },
+          { id: 'plugin_installer', label: 'Plugin Installer', icon: <Plug className="w-5 h-5" /> },
+          { id: 'mod_installer', label: 'Mod Installer', icon: <PackageOpen className="w-5 h-5" /> },
+          { id: 'bedrock_installer', label: 'Bedrock Addons', icon: <PackageOpen className="w-5 h-5" /> },
+          { id: 'server_splitter', label: 'Server Splitter', icon: <SplitSquareHorizontal className="w-5 h-5" /> },
+          { id: 'backup', label: 'Backup Manager', icon: <DatabaseBackup className="w-5 h-5" /> },
+          { id: 'logs', label: 'System Logs', icon: <ScrollText className="w-5 h-5" /> },
+          { id: 'theme_settings', label: 'Theme Settings', icon: <Palette className="w-5 h-5" /> },
+          { id: 'permissions', label: 'Permissions', icon: <UserCheck className="w-5 h-5" /> },
+          { id: 'updater', label: 'Auto Updater', icon: <ArrowUpCircle className="w-5 h-5" /> },
+          { id: 'docs', label: 'Documentation', icon: <FileText className="w-5 h-5" /> },
+          { id: 'foundation', label: 'Foundation Code', icon: <Settings className="w-5 h-5" /> },
+        ]}
+      />
       {/* Sidebar */}
       <aside className="w-64 h-full bg-white/5 backdrop-blur-xl border-r border-white/10 flex flex-col overflow-y-auto shrink-0 z-20">
         <div className="p-6">
@@ -122,21 +175,31 @@ export default function App() {
           </div>
           
           <nav className="space-y-2">
-            <div className="mb-2 text-xs font-bold text-slate-500 uppercase tracking-widest">Admin Area</div>
+            <div className="mb-2 text-xs font-bold text-slate-500 uppercase tracking-widest">Client Area</div>
+            <NavItem icon={<Server />} label="My Servers" active={activeView === 'user_dashboard'} onClick={() => setActiveView('user_dashboard')} />
+            <NavItem icon={<Terminal />} label="Server Console" active={activeView === 'console'} onClick={() => setActiveView('console')} />
+
+            <div className="mt-8 mb-2 text-xs font-bold text-slate-500 uppercase tracking-widest">Admin Area</div>
             <NavItem icon={<LayoutDashboard />} label="Dashboard" active={activeView === 'dashboard'} onClick={() => setActiveView('dashboard')} />
-            <NavItem icon={<Server />} label="Servers" active={activeView === 'servers'} onClick={() => setActiveView('servers')} />
+            <NavItem icon={<Server />} label="All Servers" active={activeView === 'servers'} onClick={() => setActiveView('servers')} />
+            <NavItem icon={<Activity />} label="Node Overview" active={activeView === 'nodes'} onClick={() => setActiveView('nodes')} />
             <NavItem icon={<Activity />} label="Resource Monitor" active={activeView === 'monitor'} onClick={() => setActiveView('monitor')} />
-            <NavItem icon={<Users />} label="Users" />
+            <NavItem icon={<Users />} label="Users" active={activeView === 'users'} onClick={() => setActiveView('users')} />
             
             <div className="mt-8 mb-2 text-xs font-bold text-slate-500 uppercase tracking-widest">Server Management</div>
             <NavItem icon={<Layers />} label="Version Manager" active={activeView === 'versions'} onClick={() => setActiveView('versions')} />
             <NavItem icon={<Plug />} label="Plugin Installer" active={activeView === 'plugin_installer'} onClick={() => setActiveView('plugin_installer')} />
+            <NavItem icon={<PackageOpen />} label="Mod Installer" active={activeView === 'mod_installer'} onClick={() => setActiveView('mod_installer')} />
+            <NavItem icon={<PackageOpen />} label="Bedrock Addons" active={activeView === 'bedrock_installer'} onClick={() => setActiveView('bedrock_installer')} />
+            <NavItem icon={<SplitSquareHorizontal />} label="Server Splitter" active={activeView === 'server_splitter'} onClick={() => setActiveView('server_splitter')} />
             <NavItem icon={<DatabaseBackup />} label="Backup Manager" active={activeView === 'backup'} onClick={() => setActiveView('backup')} />
             <NavItem icon={<ScrollText />} label="System Logs" active={activeView === 'logs'} onClick={() => setActiveView('logs')} />
             
-            <div className="mt-8 mb-2 text-xs font-bold text-slate-500 uppercase tracking-widest">Theme Editor</div>
-            <NavItem icon={<Palette />} label="Visual Settings" active={activeView === 'theme_settings'} onClick={() => setActiveView('theme_settings')} />
+            <div className="mt-8 mb-2 text-xs font-bold text-slate-500 uppercase tracking-widest">System Configurations</div>
+            <NavItem icon={<Palette />} label="Theme Settings" active={activeView === 'theme_settings'} onClick={() => setActiveView('theme_settings')} />
+            <NavItem icon={<UserCheck />} label="Permissions" active={activeView === 'permissions'} onClick={() => setActiveView('permissions')} />
             <NavItem icon={<ArrowUpCircle />} label="Auto Updater" active={activeView === 'updater'} onClick={() => setActiveView('updater')} />
+            <NavItem icon={<FileText />} label="Documentation" active={activeView === 'docs'} onClick={() => setActiveView('docs')} />
             <NavItem icon={<Settings />} label="Foundation Code" active={activeView === 'foundation'} onClick={() => setActiveView('foundation')} />
           </nav>
         </div>
@@ -156,9 +219,18 @@ export default function App() {
         {/* Header */}
         <header className="h-20 bg-white/5 backdrop-blur-md border-b border-white/10 flex items-center justify-between px-8 shrink-0">
           <div className="flex items-center gap-4">
-            <div className="h-10 w-80 bg-white/5 border border-white/10 rounded-full flex items-center px-4">
+            <div className="h-10 w-80 bg-white/5 border border-white/10 rounded-full flex items-center px-4 relative group">
               <svg className="w-4 h-4 text-slate-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-              <span className="text-sm text-slate-500">Search servers or nodes...</span>
+              <input 
+                type="text" 
+                placeholder="Search servers or nodes..." 
+                className="bg-transparent border-none outline-none text-sm text-slate-200 w-full placeholder:text-slate-500"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+              <div className="absolute right-3 hidden group-hover:flex items-center gap-1 text-[10px] font-mono text-slate-500 bg-white/5 px-1.5 py-0.5 rounded border border-white/10">
+                <span>Ctrl</span><span>K</span>
+              </div>
             </div>
           </div>
           <div className="flex items-center gap-6">
@@ -173,14 +245,23 @@ export default function App() {
         {/* Content Area */}
         <div className="flex-1 overflow-y-auto">
           <ErrorBoundary>
-            {activeView === 'dashboard' && <ServerDashboard />}
-            {activeView === 'servers' && <ServerDashboard />}
+            {activeView === 'user_dashboard' && <UserDashboard />}
+            {activeView === 'dashboard' && <ServerDashboard searchQuery={searchQuery} />}
+            {activeView === 'servers' && <ServerDashboard searchQuery={searchQuery} />}
+            {activeView === 'console' && <ConsoleView />}
+            {activeView === 'nodes' && <NodeOverview />}
             {activeView === 'monitor' && <ResourceMonitor />}
+            {activeView === 'users' && <PlayerManager />}
             {activeView === 'versions' && <VersionManager />}
             {activeView === 'plugin_installer' && <PluginInstallerContainer />}
+            {activeView === 'mod_installer' && <ModInstaller />}
+            {activeView === 'bedrock_installer' && <BedrockAddonInstaller />}
+            {activeView === 'server_splitter' && <ServerSplitter />}
             {activeView === 'backup' && <BackupManager />}
             {activeView === 'logs' && <SystemLogs />}
             {activeView === 'theme_settings' && <ThemeSettingsContainer />}
+            {activeView === 'permissions' && <PermissionsManager />}
+            {activeView === 'docs' && <Documentation />}
             {activeView === 'updater' && <AutoUpdater />}
             {activeView === 'foundation' && (
               <div className="p-8 max-w-5xl mx-auto space-y-8 animate-in fade-in duration-500">

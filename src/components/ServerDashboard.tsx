@@ -1,8 +1,8 @@
 import React from 'react';
-import { Cpu, MemoryStick as Ram, Users, Activity, Play, Square, Settings as SettingsIcon, BarChart2 } from 'lucide-react';
+import { Cpu, MemoryStick as Ram, Users, Activity, Play, Square, Settings as SettingsIcon, BarChart2, Shield, History, Terminal } from 'lucide-react';
 import { motion } from 'motion/react';
 
-export default function ServerDashboard() {
+export default function ServerDashboard({ searchQuery = '' }: { searchQuery?: string }) {
   const containerVariants = {
     hidden: { opacity: 0 },
     show: {
@@ -17,6 +17,54 @@ export default function ServerDashboard() {
     hidden: { opacity: 0, y: 20 },
     show: { opacity: 1, y: 0, transition: { duration: 0.5 } }
   };
+
+  const servers = [
+    {
+      id: 1,
+      name: "Main Survival Hub",
+      node: "us-east-1",
+      version: "1.20.1 Forge",
+      status: "Running",
+      cpu: "14%",
+      ram: "4.2GB",
+      initial: "M",
+      color: "blue"
+    },
+    {
+      id: 2,
+      name: "Creative PlotWorld",
+      node: "eu-central-2",
+      version: "1.20.1 Paper",
+      status: "Running",
+      cpu: "4%",
+      ram: "1.8GB",
+      initial: "C",
+      color: "fuchsia"
+    },
+    {
+      id: 3,
+      name: "Bedwars Lobby-1",
+      node: "us-west-1",
+      version: "1.8.9 Spigot",
+      status: "Offline",
+      cpu: "0%",
+      ram: "0GB",
+      initial: "B",
+      color: "slate"
+    }
+  ];
+
+  const filteredServers = servers.filter(server => 
+    server.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    server.node.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const recentActivity = [
+    { id: 1, action: "Server Started", server: "Main Survival Hub", user: "Alex Rivera", time: "2 minutes ago", icon: <Play className="w-4 h-4 text-green-400" /> },
+    { id: 2, action: "Permissions Updated", server: "Creative PlotWorld", user: "System", time: "1 hour ago", icon: <Shield className="w-4 h-4 text-blue-400" /> },
+    { id: 3, action: "Console Command Executed", server: "Bedwars Lobby-1", user: "Alex Rivera", time: "3 hours ago", icon: <Terminal className="w-4 h-4 text-slate-400" /> },
+    { id: 4, action: "Server Stopped", server: "Bedwars Lobby-1", user: "Auto-Scheduler", time: "5 hours ago", icon: <Square className="w-4 h-4 text-red-400" /> },
+  ];
 
   return (
     <motion.div 
@@ -106,89 +154,97 @@ export default function ServerDashboard() {
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
-              <tr className="hover:bg-white/5 transition-colors group">
-                <td className="px-8 py-5">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-blue-500/20 border border-blue-500/40 rounded-xl flex items-center justify-center text-blue-400 font-bold shadow-inner">M</div>
-                    <div>
-                      <p className="text-sm font-bold text-white uppercase tracking-tight group-hover:text-blue-400 transition-colors">Main Survival Hub</p>
-                      <p className="text-xs text-slate-500 mt-0.5">us-east-1 | 1.20.1 Forge</p>
+              {filteredServers.map(server => (
+                <tr key={server.id} className="hover:bg-white/5 transition-colors group">
+                  <td className="px-8 py-5">
+                    <div className="flex items-center gap-4">
+                      <div className={`w-12 h-12 bg-${server.color}-500/20 border border-${server.color}-500/40 rounded-xl flex items-center justify-center text-${server.color}-400 font-bold shadow-inner`}>{server.initial}</div>
+                      <div>
+                        <p className={`text-sm font-bold text-white uppercase tracking-tight group-hover:text-${server.color}-400 transition-colors`}>{server.name}</p>
+                        <p className="text-xs text-slate-500 mt-0.5">{server.node} | {server.version}</p>
+                      </div>
                     </div>
-                  </div>
-                </td>
-                <td className="px-8 py-5">
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-green-500/10 text-green-400 text-[10px] font-black uppercase rounded-full border border-green-500/20 tracking-widest shadow-[0_0_10px_rgba(74,222,128,0.1)]">
-                    <div className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse"></div>
-                    Running
-                  </span>
-                </td>
-                <td className="px-8 py-5">
-                  <div className="flex flex-col gap-2 text-xs font-medium text-slate-400 w-32">
-                    <div className="flex justify-between items-center">
-                      <span>CPU</span> <span className="text-white">14%</span>
+                  </td>
+                  <td className="px-8 py-5">
+                    {server.status === 'Running' ? (
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-green-500/10 text-green-400 text-[10px] font-black uppercase rounded-full border border-green-500/20 tracking-widest shadow-[0_0_10px_rgba(74,222,128,0.1)]">
+                        <div className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse"></div>
+                        Running
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-500/10 text-slate-400 text-[10px] font-black uppercase rounded-full border border-slate-500/20 tracking-widest">
+                        <div className="w-1.5 h-1.5 rounded-full bg-slate-400"></div>
+                        Offline
+                      </span>
+                    )}
+                  </td>
+                  <td className="px-8 py-5">
+                    <div className="flex flex-col gap-2 text-xs font-medium text-slate-400 w-32">
+                      <div className="flex justify-between items-center">
+                        <span>CPU</span> <span className="text-white">{server.cpu}</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span>RAM</span> <span className="text-white">{server.ram}</span>
+                      </div>
                     </div>
-                    <div className="flex justify-between items-center">
-                      <span>RAM</span> <span className="text-white">4.2GB</span>
+                  </td>
+                  <td className="px-8 py-5 text-right">
+                    <div className="flex justify-end gap-2">
+                      <button className="w-9 h-9 rounded-xl bg-white/5 hover:bg-white/10 border border-transparent hover:border-white/10 flex items-center justify-center text-slate-400 hover:text-white transition-all shadow-sm">
+                        <SettingsIcon className="w-4 h-4" />
+                      </button>
+                      <button className="w-9 h-9 rounded-xl bg-white/5 hover:bg-white/10 border border-transparent hover:border-white/10 flex items-center justify-center text-slate-400 hover:text-white transition-all shadow-sm">
+                        <BarChart2 className="w-4 h-4" />
+                      </button>
+                      {server.status === 'Running' ? (
+                        <button className="w-9 h-9 rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-transparent hover:border-red-500/20 flex items-center justify-center text-red-400 hover:text-red-300 transition-all shadow-sm">
+                          <Square className="w-4 h-4" />
+                        </button>
+                      ) : (
+                        <button className="w-9 h-9 rounded-xl bg-green-500/10 hover:bg-green-500/20 border border-transparent hover:border-green-500/20 flex items-center justify-center text-green-400 hover:text-green-300 transition-all shadow-sm">
+                          <Play className="w-4 h-4" />
+                        </button>
+                      )}
                     </div>
-                  </div>
-                </td>
-                <td className="px-8 py-5 text-right">
-                  <div className="flex justify-end gap-2">
-                    <button className="w-9 h-9 rounded-xl bg-white/5 hover:bg-white/10 border border-transparent hover:border-white/10 flex items-center justify-center text-slate-400 hover:text-white transition-all shadow-sm">
-                      <SettingsIcon className="w-4 h-4" />
-                    </button>
-                    <button className="w-9 h-9 rounded-xl bg-white/5 hover:bg-white/10 border border-transparent hover:border-white/10 flex items-center justify-center text-slate-400 hover:text-white transition-all shadow-sm">
-                      <BarChart2 className="w-4 h-4" />
-                    </button>
-                    <button className="w-9 h-9 rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-transparent hover:border-red-500/20 flex items-center justify-center text-red-400 hover:text-red-300 transition-all shadow-sm">
-                      <Square className="w-4 h-4" />
-                    </button>
-                  </div>
-                </td>
-              </tr>
-              
-              <tr className="hover:bg-white/5 transition-colors group">
-                <td className="px-8 py-5">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-indigo-500/20 border border-indigo-500/40 rounded-xl flex items-center justify-center text-indigo-400 font-bold shadow-inner">P</div>
-                    <div>
-                      <p className="text-sm font-bold text-white uppercase tracking-tight group-hover:text-indigo-400 transition-colors">PVP Tournament Arena</p>
-                      <p className="text-xs text-slate-500 mt-0.5">eu-central-1 | 1.14.4 Paper</p>
-                    </div>
-                  </div>
-                </td>
-                <td className="px-8 py-5">
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-500/10 text-amber-400 text-[10px] font-black uppercase rounded-full border border-amber-500/20 tracking-widest">
-                    <div className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-spin" style={{ animationDuration: '3s' }}></div>
-                    Starting
-                  </span>
-                </td>
-                <td className="px-8 py-5">
-                  <div className="flex flex-col gap-2 text-xs font-medium text-slate-400 w-32">
-                    <div className="flex justify-between items-center">
-                      <span>CPU</span> <span className="text-white">4%</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span>RAM</span> <span className="text-white">1.8GB</span>
-                    </div>
-                  </div>
-                </td>
-                <td className="px-8 py-5 text-right">
-                  <div className="flex justify-end gap-2">
-                    <button className="w-9 h-9 rounded-xl bg-white/5 hover:bg-white/10 border border-transparent hover:border-white/10 flex items-center justify-center text-slate-400 hover:text-white transition-all shadow-sm">
-                      <SettingsIcon className="w-4 h-4" />
-                    </button>
-                    <button className="w-9 h-9 rounded-xl bg-white/5 hover:bg-white/10 border border-transparent hover:border-white/10 flex items-center justify-center text-slate-400 hover:text-white transition-all shadow-sm">
-                      <BarChart2 className="w-4 h-4" />
-                    </button>
-                    <button className="w-9 h-9 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 border border-transparent hover:border-amber-500/20 flex items-center justify-center text-amber-400 hover:text-amber-300 transition-all shadow-sm">
-                      <Play className="w-4 h-4" />
-                    </button>
-                  </div>
-                </td>
-              </tr>
+                  </td>
+                </tr>
+              ))}
+              {filteredServers.length === 0 && (
+                <tr>
+                  <td colSpan={4} className="px-8 py-8 text-center text-slate-500">
+                    No servers matched your search query.
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
+        </div>
+      </motion.div>
+
+      {/* Recent Activity Widget */}
+      <motion.div variants={itemVariants} className="bg-white/5 border border-white/10 rounded-2xl p-6">
+        <div className="flex items-center gap-3 mb-6">
+          <History className="w-5 h-5 text-indigo-400" />
+          <h2 className="text-xl font-bold text-white">Recent Admin Activity</h2>
+        </div>
+        
+        <div className="space-y-4">
+          {recentActivity.map(activity => (
+            <div key={activity.id} className="flex items-center justify-between p-4 bg-black/20 rounded-xl border border-white/5 hover:bg-white/5 hover:border-white/10 transition-colors">
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center">
+                  {activity.icon}
+                </div>
+                <div>
+                  <p className="font-medium text-white">{activity.action} <span className="text-slate-500 font-normal">on</span> {activity.server}</p>
+                  <p className="text-xs text-slate-400 mt-0.5">by <span className="text-indigo-400">{activity.user}</span></p>
+                </div>
+              </div>
+              <div className="text-xs font-mono text-slate-500">
+                {activity.time}
+              </div>
+            </div>
+          ))}
         </div>
       </motion.div>
     </motion.div>
